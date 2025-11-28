@@ -5,11 +5,15 @@ import { AddProfileCard } from "@/components/AddProfileCard";
 
 const ProfileSelection = () => {
   const navigate = useNavigate();
-  const { profiles, selectProfile } = useProfile();
+  const { profiles, selectProfile, deleteProfile } = useProfile();
 
   const handleProfileClick = (profileId: string) => {
     selectProfile(profileId);
     navigate("/browse");
+  };
+
+  const handleDeleteProfile = (profileId: string) => {
+    deleteProfile(profileId);
   };
 
   return (
@@ -24,6 +28,7 @@ const ProfileSelection = () => {
               key={profile.id}
               name={profile.name}
               onClick={() => handleProfileClick(profile.id)}
+              onDelete={() => handleDeleteProfile(profile.id)}
             />
           ))}
           <AddProfileCard onClick={() => navigate("/add-profile")} />

@@ -6,6 +6,7 @@ interface ProfileContextType {
   currentProfile: Profile | null;
   addProfile: (profile: Omit<Profile, "id" | "favoriteMovies">) => void;
   selectProfile: (profileId: string) => void;
+  deleteProfile: (profileId: string) => void;
   toggleFavorite: (movieId: string) => void;
   setThemeColor: (color: ThemeColor) => void;
 }
@@ -51,6 +52,16 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
+  const deleteProfile = (profileId: string) => {
+    const updatedProfiles = profiles.filter((p) => p.id !== profileId);
+    setProfiles(updatedProfiles);
+    
+    if (currentProfile?.id === profileId) {
+      setCurrentProfile(null);
+      localStorage.removeItem("neoflix-current-profile");
+    }
+  };
+
   const toggleFavorite = (movieId: string) => {
     if (!currentProfile) return;
 
@@ -84,6 +95,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
         currentProfile,
         addProfile,
         selectProfile,
+        deleteProfile,
         toggleFavorite,
         setThemeColor,
       }}
