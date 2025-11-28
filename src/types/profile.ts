@@ -1,4 +1,4 @@
-export type Genre = "Documentary" | "Action" | "War" | "Drama";
+export type Genre = "Action" | "Animation" | "Comedy" | "Horror";
 export type ThemeColor = "blue" | "green" | "pink";
 
 export interface Profile {
