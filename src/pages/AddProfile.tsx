@@ -96,10 +96,10 @@ const AddProfile = () => {
                   <SelectValue placeholder="Selecione um gênero" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Documentary">Documentário</SelectItem>
                   <SelectItem value="Action">Ação</SelectItem>
-                  <SelectItem value="War">Guerra</SelectItem>
-                  <SelectItem value="Drama">Drama</SelectItem>
+                  <SelectItem value="Animation">Animação</SelectItem>
+                  <SelectItem value="Comedy">Comédia</SelectItem>
+                  <SelectItem value="Horror">Terror</SelectItem>
                 </SelectContent>
               </Select>
             </div>
