@@ -15,7 +15,7 @@ const Browse = () => {
   const [refreshKey, setRefreshKey] = useState(0);
 
   const genres: Genre[] = ["Action", "Animation", "Comedy", "Horror"];
-  
+
   const genreLabels: Record<Genre, string> = {
     Action: "Ação",
     Animation: "Animação",
@@ -27,40 +27,79 @@ const Browse = () => {
     return movies.filter((m) => m.genre === genre);
   };
 
-  const getRecommendedMovies = useMemo(() => {
-    if (!currentProfile) return [];
-    
-    const favoriteMovies = movies.filter((m) => 
-      currentProfile.favoriteMovies.includes(m.id)
-    );
-    
-    if (favoriteMovies.length > 0) {
-      const genreCounts = favoriteMovies.reduce((acc, movie) => {
-        acc[movie.genre] = (acc[movie.genre] || 0) + 1;
-        return acc;
-      }, {} as Record<Genre, number>);
-      
-      const topGenre = Object.entries(genreCounts).sort((a, b) => b[1] - a[1])[0][0] as Genre;
-      return getMoviesByGenre(topGenre).slice(0, 4);
-    }
-    
-    return getMoviesByGenre(currentProfile.favoriteGenre).slice(0, 4);
-  }, [currentProfile, refreshKey]);
-
-  const fixedMovies = useMemo(() => {
-    return genres.map((genre) => getMoviesByGenre(genre)[0]);
-  }, []);
-
   const displayedMovies = useMemo(() => {
+    if (!currentProfile) return [];
+
     if (selectedSection === "favorites") {
-      if (!currentProfile) return [];
       return movies.filter((m) => currentProfile.favoriteMovies.includes(m.id));
     }
-    if (selectedSection === "all") {
-      return [...getRecommendedMovies, ...fixedMovies];
+
+    if (selectedSection !== "all") {
+      return getMoviesByGenre(selectedSection);
     }
-    return getMoviesByGenre(selectedSection);
-  }, [selectedSection, getRecommendedMovies, fixedMovies, currentProfile]);
+
+    const uniqueById = (arr: any[]) =>
+      arr.filter((v, i, a) => v && a.findIndex((x) => x.id === v.id) === i);
+
+    const favoriteMovies = movies.filter((m) =>
+      currentProfile.favoriteMovies.includes(m.id)
+    );
+
+    let recommendedGenre: Genre | null = null;
+
+    if (favoriteMovies.length > 0) {
+      const genreCounts = favoriteMovies.reduce((acc: any, movie) => {
+        acc[movie.genre] = (acc[movie.genre] || 0) + 1;
+        return acc;
+      }, {});
+
+      recommendedGenre = Object.entries(genreCounts)
+        .sort((a, b) => b[1] - a[1])[0][0] as Genre;
+    } else {
+      recommendedGenre = currentProfile.favoriteGenre;
+    }
+
+    let topMovies = recommendedGenre
+      ? getMoviesByGenre(recommendedGenre).slice(0, 4)
+      : [];
+
+    if (topMovies.length < 4) {
+      const need = 4 - topMovies.length;
+      const filler = movies
+        .filter((m) => !topMovies.find((t) => t.id === m.id))
+        .slice(0, need);
+
+      topMovies = [...topMovies, ...filler];
+    }
+
+    let bottomMovies = genres
+      .map((genre) => getMoviesByGenre(genre)[0])
+      .filter(Boolean) as typeof movies;
+
+    bottomMovies = bottomMovies.filter(
+      (b) => !topMovies.find((t) => t.id === b.id)
+    );
+
+    if (bottomMovies.length < 4) {
+      const need = 4 - bottomMovies.length;
+      const filler = movies
+        .filter(
+          (m) =>
+            !topMovies.find((t) => t.id === m.id) &&
+            !bottomMovies.find((b) => b.id === m.id)
+        )
+        .slice(0, need);
+
+      bottomMovies = [...bottomMovies, ...filler];
+    }
+
+    const final = uniqueById([
+      ...topMovies.slice(0, 4),
+      ...bottomMovies.slice(0, 4),
+    ]).filter(Boolean);
+
+    return final;
+  }, [selectedSection, refreshKey, currentProfile]);
 
   if (!currentProfile) {
     navigate("/");
@@ -78,7 +117,7 @@ const Browse = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setRefreshKey(k => k + 1)}
+                onClick={() => setRefreshKey((k) => k + 1)}
                 className="text-foreground hover:text-primary"
               >
                 <RefreshCw className="h-5 w-5" />
@@ -111,6 +150,7 @@ const Browse = () => {
               <Film className="mr-2 h-4 w-4" />
               Filmes
             </Button>
+
             {genres.map((genre) => (
               <Button
                 key={genre}
@@ -124,6 +164,7 @@ const Browse = () => {
                 {genreLabels[genre]}
               </Button>
             ))}
+
             <Button
               variant="ghost"
               className={cn(
@@ -142,17 +183,19 @@ const Browse = () => {
         <main className="ml-64 flex-1 p-6">
           <div className="mb-6">
             <h2 className="text-2xl font-bold text-foreground mb-2">
-              {selectedSection === "all" 
-                ? "Filmes" 
+              {selectedSection === "all"
+                ? "Filmes"
                 : selectedSection === "favorites"
                 ? "Favoritos"
                 : genreLabels[selectedSection]}
             </h2>
+
             {selectedSection === "all" && (
               <p className="text-muted-foreground">
                 Recomendados para você e seleção de cada gênero
               </p>
             )}
+
             {selectedSection === "favorites" && displayedMovies.length === 0 && (
               <p className="text-muted-foreground">
                 Você ainda não tem filmes favoritos
