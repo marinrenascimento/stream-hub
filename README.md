@@ -2,7 +2,7 @@
 
 ## Project info
 
-**URL**: http://localhost:8081/browse
+**URL**: https://lovable.dev/projects/467f2938-ff17-46ec-93e1-9f3e557c33c1
 ## How can I edit this code?
 
 There are several ways of editing your application.
