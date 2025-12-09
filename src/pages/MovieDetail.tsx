@@ -1,17 +1,33 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react"; 
 import { ArrowLeft, Star, Play } from "lucide-react";
-import { movies } from "@/data/movies";
+// import { movies } from "@/data/movies";
+import { getMovieById } from "@/data/movieService";
 import { useProfile } from "@/contexts/ProfileContext";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Movie } from "@/types/profile";
+
 
 const MovieDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { currentProfile, toggleFavorite } = useProfile();
+  const [movie, setMovie] = useState<Movie | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (id) {
+        setLoading(true);
+        getMovieById(id).then((fetchedMovie) => {
+            setMovie(fetchedMovie);
+            setLoading(false);
+        });
+    }
+  }, [id]);
   
-  const movie = movies.find((m) => m.id === id);
-  
+  if (loading) return <div className="min-h-screen bg-background text-white p-12">Carregando detalhes...</div>;
+
   if (!movie || !currentProfile) {
     navigate("/browse");
     return null;
@@ -93,6 +109,18 @@ const MovieDetail = () => {
           <div>
             <h3 className="text-lg font-semibold text-foreground mb-2">Sinopse</h3>
             <p className="text-muted-foreground leading-relaxed">{movie.description}</p>
+              {movie.cast && movie.cast.length > 0 && (
+                <div className="mt-6">
+                  <h3 className="text-lg font-semibold text-foreground mb-2">Elenco</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {movie.cast.map((actor) => (
+                      <span key={actor} className="px-3 py-1 bg-secondary rounded-full text-sm text-secondary-foreground border border-border">
+                        {actor}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
           </div>
           <div className="space-y-4">
             <div>

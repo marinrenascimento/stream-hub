@@ -20,4 +20,5 @@ export interface Movie {
   year: number;
   duration: string;
   rating: number;
+  cast?: string[];
 }

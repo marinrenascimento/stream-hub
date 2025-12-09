@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Profile, ThemeColor } from "@/types/profile";
+import { toggleUserFavorite, deleteUserFromDB  } from "@/data/movieService"; // Importação do serviço
 
 interface ProfileContextType {
   profiles: Profile[];
@@ -60,20 +61,33 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setCurrentProfile(null);
       localStorage.removeItem("neoflix-current-profile");
     }
+
+    deleteUserFromDB(profileId)
+      .then(() => console.log(`User ${profileId} deleted from DB`))
+      .catch((err) => console.error("Failed to delete user from DB", err));
   };
 
+  // --- FUNÇÃO ATUALIZADA COM LÓGICA DO NEO4J ---
   const toggleFavorite = (movieId: string) => {
     if (!currentProfile) return;
 
+    const isFavoriting = !currentProfile.favoriteMovies.includes(movieId);
+
+    // 1. Atualização
     const updatedProfile = {
       ...currentProfile,
-      favoriteMovies: currentProfile.favoriteMovies.includes(movieId)
-        ? currentProfile.favoriteMovies.filter((id) => id !== movieId)
-        : [...currentProfile.favoriteMovies, movieId],
+      favoriteMovies: isFavoriting
+        ? [...currentProfile.favoriteMovies, movieId]
+        : currentProfile.favoriteMovies.filter((id) => id !== movieId),
     };
 
     setCurrentProfile(updatedProfile);
     setProfiles(profiles.map((p) => (p.id === updatedProfile.id ? updatedProfile : p)));
+
+    // 2. Chamada ao Neo4j (Background)
+    toggleUserFavorite(currentProfile.id, movieId, isFavoriting)
+      .then(() => console.log("Neo4j graph updated"))
+      .catch((err) => console.error("Neo4j update failed", err));
   };
 
   const setThemeColor = (color: ThemeColor) => {

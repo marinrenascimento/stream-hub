@@ -1,18 +1,22 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { RefreshCw, User, Film, Star } from "lucide-react";
 import { useProfile } from "@/contexts/ProfileContext";
-import { movies } from "@/data/movies";
 import { MovieCard } from "@/components/MovieCard";
 import { Button } from "@/components/ui/button";
-import { Genre } from "@/types/profile";
+import { Genre, Movie } from "@/types/profile";
 import { cn } from "@/lib/utils";
+import { getRecommendedMovies, getMoviesByGenre, ensureUserInDB } from "@/data/movieService";
 
 const Browse = () => {
   const navigate = useNavigate();
   const { currentProfile, toggleFavorite } = useProfile();
   const [selectedSection, setSelectedSection] = useState<Genre | "all" | "favorites">("all");
-  const [refreshSeed, setRefreshSeed] = useState(Math.random());
+  
+  // Estado dos dados
+  const [recommended, setRecommended] = useState<Movie[]>([]);
+  const [genreLists, setGenreLists] = useState<Record<string, Movie[]>>({});
+  const [loading, setLoading] = useState(true);
 
   const genres: Genre[] = ["Action", "Animation", "Comedy", "Horror"];
 
@@ -23,79 +27,90 @@ const Browse = () => {
     Horror: "Terror",
   };
 
-  const shuffle = (arr: any[]) => {
-    const a = [...arr];
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
+  // Carregar dados do Neo4j
+  useEffect(() => {
+    if (!currentProfile) {
+      navigate("/");
+      return;
     }
-    return a;
+
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        await ensureUserInDB(currentProfile);
+        
+        // Busca paralela
+        const [recs, ...genreResults] = await Promise.all([
+          getRecommendedMovies(currentProfile.id),
+          ...genres.map(g => getMoviesByGenre(g))
+        ]);
+
+        setRecommended(recs);
+        
+        const lists: Record<string, Movie[]> = {};
+        genres.forEach((g, index) => {
+          lists[g] = genreResults[index];
+        });
+        setGenreLists(lists);
+
+      } catch (error) {
+        console.error("Neo4j Error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [currentProfile]);
+
+  const handleRefresh = async () => {
+    if (currentProfile) {
+      setLoading(true);
+      try {
+        const [recs, ...genreResults] = await Promise.all([
+          getRecommendedMovies(currentProfile.id),
+          ...genres.map(g => getMoviesByGenre(g))
+        ]);
+
+        setRecommended(recs);
+
+        const lists: Record<string, Movie[]> = {};
+        genres.forEach((g, index) => {
+          lists[g] = genreResults[index];
+        });
+        setGenreLists(lists);
+        
+      } catch (error) {
+        console.error("Refresh failed:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
   };
 
-  const getMoviesByGenre = (genre: Genre) => {
-    return movies.filter((m) => m.genre === genre);
+  if (!currentProfile) return null;
+  if (loading) return <div className="min-h-screen bg-background flex items-center justify-center text-white">Carregando...</div>;
+
+  // 1. Top 4 Recomendados
+  const topMovies = recommended.slice(0, 4);
+
+  // 2. Um filme de cada gênero para a seção "Seleção por Gênero"
+  const bottomMovies = genres
+    .map(genre => genreLists[genre]?.[0])
+    .filter(Boolean);
+
+  // Lógica para filtrar quando o usuário clica no menu lateral
+  const getDisplayList = () => {
+    if (selectedSection === 'favorites') {
+      const allMovies = [...recommended, ...Object.values(genreLists).flat()];
+      // Remove duplicatas pelo ID
+      const uniqueMovies = Array.from(new Map(allMovies.map(m => [m.id, m])).values());
+      return uniqueMovies.filter(m => currentProfile.favoriteMovies.includes(m.id));
+    }
+    return genreLists[selectedSection] || [];
   };
 
-  const [fixedBottomMovies] = useState(() => {
-    return genres
-      .map((genre) => getMoviesByGenre(genre)[0])
-      .filter(Boolean) as typeof movies;
-  });
-
-  const { topMovies, bottomMovies, listForSection } = useMemo(() => {
-    if (!currentProfile) return { topMovies: [], bottomMovies: fixedBottomMovies, listForSection: [] };
-
-    if (selectedSection === "favorites") {
-      const favs = movies.filter((m) => currentProfile.favoriteMovies.includes(m.id));
-      return { topMovies: favs, bottomMovies: fixedBottomMovies, listForSection: favs };
-    }
-
-    if (selectedSection !== "all") {
-      const byGenre = getMoviesByGenre(selectedSection);
-      return { topMovies: byGenre, bottomMovies: fixedBottomMovies, listForSection: byGenre };
-    }
-
-    const favoriteMovies = movies.filter((m) => currentProfile.favoriteMovies.includes(m.id));
-
-    let recommendedGenre: Genre | null = null;
-
-    if (favoriteMovies.length > 0) {
-      const genreCounts = favoriteMovies.reduce((acc: Record<string, number>, movie) => {
-        acc[movie.genre] = (acc[movie.genre] || 0) + 1;
-        return acc;
-      }, {});
-      recommendedGenre = Object.entries(genreCounts).sort((a, b) => b[1] - a[1])[0][0] as Genre;
-    } else {
-      recommendedGenre = currentProfile.favoriteGenre;
-    }
-
-    let top: any[] = [];
-
-    if (recommendedGenre) {
-      const pool = getMoviesByGenre(recommendedGenre).filter(
-        (m) => !fixedBottomMovies.some((b) => b.id === m.id)
-      );
-      const shuffled = shuffle(pool);
-      top = shuffled.slice(0, 4);
-    }
-
-    if (top.length < 4) {
-      const need = 4 - top.length;
-      const filler = shuffle(
-        movies.filter((m) => !top.some((t) => t.id === m.id) && !fixedBottomMovies.some((b) => b.id === m.id))
-      ).slice(0, need);
-      top = [...top, ...filler];
-    }
-
-    const bottom = fixedBottomMovies.slice(0, 4);
-
-    return { topMovies: top, bottomMovies: bottom, listForSection: [...top, ...bottom] };
-  }, [selectedSection, currentProfile, refreshSeed, fixedBottomMovies]);
-
-  if (!currentProfile) {
-    navigate("/");
-    return null;
-  }
+  const listForSection = getDisplayList();
 
   return (
     <div className="min-h-screen bg-background">
@@ -107,7 +122,7 @@ const Browse = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setRefreshSeed(Math.random())}
+                onClick={handleRefresh}
                 className="text-foreground hover:text-primary"
               >
                 <RefreshCw className="h-5 w-5" />
@@ -177,17 +192,13 @@ const Browse = () => {
                 ? "Favoritos"
                 : genreLabels[selectedSection]}
             </h2>
-
-            {selectedSection === "all" && <p className="text-muted-foreground">Recomendados para você e seleção de cada gênero</p>}
-
-            {selectedSection === "favorites" && listForSection.length === 0 && (
-              <p className="text-muted-foreground">Você ainda não tem filmes favoritos</p>
-            )}
           </div>
 
+          {/* VISÃO GERAL (HOME) */}
           {selectedSection === "all" && (
             <>
-              <h3 className="text-xl font-semibold mb-3 text-primary">Recomendados</h3>
+              {/* SEÇÃO 1: RECOMENDADOS (MÁX 4) */}
+              <h3 className="text-xl font-semibold mb-3 text-primary">Recomendados para {currentProfile.name}</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
                 {topMovies.map((movie) => (
                   <MovieCard
@@ -200,6 +211,7 @@ const Browse = () => {
                 ))}
               </div>
 
+              {/* SEÇÃO 2: UM DE CADA GÊNERO (MÁX 4) */}
               <h3 className="text-xl font-semibold mb-3 text-primary">Seleção por Gênero</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 {bottomMovies.map((movie) => (
@@ -215,6 +227,7 @@ const Browse = () => {
             </>
           )}
 
+          {/* VISÃO FILTRADA (MENU LATERAL) */}
           {selectedSection !== "all" && (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {listForSection.map((movie) => (

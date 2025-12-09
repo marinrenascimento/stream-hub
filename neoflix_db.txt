@@ -1,0 +1,124 @@
+// =========================================================
+// 1. LIMPEZA TOTAL (Reseta o Banco)
+// =========================================================
+MATCH (n) DETACH DELETE n;
+
+// =========================================================
+// 2. CRIAÇÃO DOS GÊNEROS
+// =========================================================
+CREATE (g1:Genre {id: 'G1', name: 'Animation'})
+CREATE (g2:Genre {id: 'G2', name: 'Horror'})
+CREATE (g3:Genre {id: 'G3', name: 'Action'})
+CREATE (g4:Genre {id: 'G4', name: 'Comedy'});
+
+// =========================================================
+// 3. CRIAÇÃO DOS FILMES E VÍNCULO COM GÊNERO
+// =========================================================
+
+// --- ANIMATION ---
+MATCH (g:Genre {name: 'Animation'})
+CREATE
+  (:Title {id: 'T01', title: 'Toy Story', genre: 'Animation', year: 1995, description: 'Woody e Buzz vivem aventuras quando os brinquedos ganham vida.', rating: 8.3, duration: '1h 21m', imageUrl: '/movies/toystory.jpg'})-[:HAS_GENRE]->(g),
+  (:Title {id: 'T02', title: 'Homem-Aranha: No Aranhaverso', genre: 'Animation', year: 2018, description: 'Miles Morales descobre o multiverso dos Homens-Aranha.', rating: 8.4, duration: '1h 57m', imageUrl: '/movies/spiderman.jpg'})-[:HAS_GENRE]->(g),
+  (:Title {id: 'T03', title: 'O Rei Leão', genre: 'Animation', year: 1994, description: 'Simba precisa aceitar seu destino como rei.', rating: 8.5, duration: '1h 28m', imageUrl: '/movies/reileao.jpg'})-[:HAS_GENRE]->(g),
+  (:Title {id: 'T04', title: 'Shrek', genre: 'Animation', year: 2001, description: 'O ogro Shrek parte em uma jornada inesperada para resgatar uma princesa.', rating: 7.9, duration: '1h 30m', imageUrl: '/movies/shrek.jpg'})-[:HAS_GENRE]->(g),
+  (:Title {id: 'T05', title: 'Como Treinar o Seu Dragão', genre: 'Animation', year: 2010, description: 'Um jovem viking cria amizade com um dragão raro.', rating: 8.1, duration: '1h 38m', imageUrl: '/movies/comotreinar.jpg'})-[:HAS_GENRE]->(g),
+  (:Title {id: 'T06', title: 'Zootopia', genre: 'Animation', year: 2016, description: 'Uma coelha policial e uma raposa vigarista investigam uma conspiração.', rating: 8.0, duration: '1h 48m', imageUrl: '/movies/zootopia.jpg'})-[:HAS_GENRE]->(g),
+  (:Title {id: 'T07', title: 'Procurando Nemo', genre: 'Animation', year: 2003, description: 'Um peixe-palhaço cruza o oceano para resgatar seu filho.', rating: 8.2, duration: '1h 40m', imageUrl: '/movies/nemo.jpg'})-[:HAS_GENRE]->(g),
+  (:Title {id: 'T08', title: 'Kung Fu Panda', genre: 'Animation', year: 2008, description: 'Po tenta se tornar o lendário Guerreiro Dragão.', rating: 7.6, duration: '1h 32m', imageUrl: '/movies/kungfu.jpg'})-[:HAS_GENRE]->(g);
+
+// --- HORROR ---
+MATCH (g:Genre {name: 'Horror'})
+CREATE
+  (:Title {id: 'T09', title: 'O Exorcista', genre: 'Horror', year: 1973, description: 'Uma jovem é possuída por uma entidade maligna.', rating: 8.1, duration: '2h 2m', imageUrl: '/movies/oexorcista.jpg'})-[:HAS_GENRE]->(g),
+  (:Title {id: 'T10', title: 'Invocação do Mal', genre: 'Horror', year: 2013, description: 'Os Warren investigam uma presença demoníaca em uma casa isolada.', rating: 7.5, duration: '1h 52m', imageUrl: '/movies/invocacao.jpg'})-[:HAS_GENRE]->(g),
+  (:Title {id: 'T11', title: 'Hereditário', genre: 'Horror', year: 2018, description: 'Uma família é atormentada por um legado sombrio.', rating: 7.3, duration: '2h 7m', imageUrl: '/movies/hereditario.jpg'})-[:HAS_GENRE]->(g),
+  (:Title {id: 'T12', title: 'It: A Coisa', genre: 'Horror', year: 2017, description: 'Um palhaço demoníaco aterroriza crianças em uma pequena cidade.', rating: 7.3, duration: '2h 15m', imageUrl: '/movies/it.jpg'})-[:HAS_GENRE]->(g),
+  (:Title {id: 'T13', title: 'O Chamado', genre: 'Horror', year: 2002, description: 'Uma fita amaldiçoada mata quem a assiste em sete dias.', rating: 7.1, duration: '1h 55m', imageUrl: '/movies/ochamado.jpg'})-[:HAS_GENRE]->(g),
+  (:Title {id: 'T14', title: 'Annabelle', genre: 'Horror', year: 2014, description: 'Uma boneca amaldiçoada causa eventos aterrorizantes.', rating: 5.4, duration: '1h 39m', imageUrl: '/movies/annabelle.jpg'})-[:HAS_GENRE]->(g),
+  (:Title {id: 'T15', title: 'A Freira', genre: 'Horror', year: 2018, description: 'Uma freira enfrenta um demônio aterrorizante.', rating: 5.3, duration: '1h 36m', imageUrl: '/movies/afreira.jpg'})-[:HAS_GENRE]->(g),
+  (:Title {id: 'T16', title: 'Um Lugar Silencioso', genre: 'Horror', year: 2018, description: 'Uma família deve sobreviver sem fazer qualquer barulho.', rating: 7.5, duration: '1h 30m', imageUrl: '/movies/umlugarsilencioso.jpg'})-[:HAS_GENRE]->(g);
+
+// --- ACTION ---
+MATCH (g:Genre {name: 'Action'})
+CREATE
+  (:Title {id: 'T17', title: 'Mad Max: Estrada da Fúria', genre: 'Action', year: 2015, description: 'Max e Furiosa tentam escapar de um tirano em um deserto pós-apocalíptico.', rating: 8.1, duration: '2h 0m', imageUrl: '/movies/madmax.jpg'})-[:HAS_GENRE]->(g),
+  (:Title {id: 'T18', title: 'Batman: O Cavaleiro das Trevas', genre: 'Action', year: 2008, description: 'Batman enfrenta o caos instaurado pelo Coringa.', rating: 9.0, duration: '2h 32m', imageUrl: '/movies/thedarkknight.jpg'})-[:HAS_GENRE]->(g),
+  (:Title {id: 'T19', title: 'Missão: Impossível - Efeito Fallout', genre: 'Action', year: 2018, description: 'Ethan Hunt enfrenta sua missão mais perigosa.', rating: 7.7, duration: '2h 27m', imageUrl: '/movies/missaoimpossivel.jpg'})-[:HAS_GENRE]->(g),
+  (:Title {id: 'T20', title: 'Matrix', genre: 'Action', year: 1999, description: 'Neo descobre a verdade sobre a realidade.', rating: 8.7, duration: '2h 16m', imageUrl: '/movies/matrix.jpg'})-[:HAS_GENRE]->(g),
+  (:Title {id: 'T21', title: 'John Wick: De Volta ao Jogo', genre: 'Action', year: 2014, description: 'Um assassino aposentado volta ao jogo em busca de vingança.', rating: 7.4, duration: '1h 41m', imageUrl: '/movies/johnwick.jpg'})-[:HAS_GENRE]->(g),
+  (:Title {id: 'T22', title: 'Gladiador', genre: 'Action', year: 2000, description: 'Um general romano busca vingança contra o imperador corrupto.', rating: 8.5, duration: '2h 35m', imageUrl: '/movies/gladiador.jpg'})-[:HAS_GENRE]->(g),
+  (:Title {id: 'T23', title: 'A Origem', genre: 'Action', year: 2010, description: 'Um ladrão entra nos sonhos das pessoas para roubar segredos.', rating: 8.8, duration: '2h 28m', imageUrl: '/movies/aorigem.jpg'})-[:HAS_GENRE]->(g),
+  (:Title {id: 'T24', title: 'Duna: Parte 2', genre: 'Action', year: 2024, description: 'Paul Atreides busca vingança enquanto inicia uma revolução.', rating: 8.9, duration: '2h 46m', imageUrl: '/movies/duna2.jpg'})-[:HAS_GENRE]->(g);
+
+// --- COMEDY ---
+MATCH (g:Genre {name: 'Comedy'})
+CREATE
+  (:Title {id: 'T25', title: 'Superbad: É Hoje', genre: 'Comedy', year: 2007, description: 'Dois amigos vivem situações absurdas antes da formatura.', rating: 7.6, duration: '1h 59m', imageUrl: '/movies/superbad.jpg'})-[:HAS_GENRE]->(g),
+  (:Title {id: 'T26', title: 'Se Beber, Não Case!', genre: 'Comedy', year: 2009, description: 'Um grupo de amigos tenta lembrar o que aconteceu após uma noite caótica.', rating: 7.7, duration: '1h 40m', imageUrl: '/movies/sebebernaocase.jpg'})-[:HAS_GENRE]->(g),
+  (:Title {id: 'T27', title: 'Anjos da Lei', genre: 'Comedy', year: 2012, description: 'Dois policiais vão para o colégio disfarçados.', rating: 7.2, duration: '1h 49m', imageUrl: '/movies/anjosdalei.jpg'})-[:HAS_GENRE]->(g),
+  (:Title {id: 'T28', title: 'Sim Senhor', genre: 'Comedy', year: 2008, description: 'Um homem muda sua vida dizendo sim para tudo.', rating: 6.8, duration: '1h 44m', imageUrl: '/movies/yesman.jpg'})-[:HAS_GENRE]->(g),
+  (:Title {id: 'T29', title: 'Click', genre: 'Comedy', year: 2006, description: 'Um controle remoto mágico permite controlar a própria vida.', rating: 6.4, duration: '1h 47m', imageUrl: '/movies/click.jpg'})-[:HAS_GENRE]->(g),
+  (:Title {id: 'T30', title: 'Deadpool', genre: 'Comedy', year: 2016, description: 'Um anti-herói irreverente busca vingança.', rating: 8.0, duration: '1h 48m', imageUrl: '/movies/deadpool.jpg'})-[:HAS_GENRE]->(g),
+  (:Title {id: 'T31', title: 'Uma Noite no Museu', genre: 'Comedy', year: 2006, description: 'O museu ganha vida durante a noite.', rating: 6.5, duration: '1h 48m', imageUrl: '/movies/umanoitenomuseu.jpg'})-[:HAS_GENRE]->(g),
+  (:Title {id: 'T32', title: 'O Máscara', genre: 'Comedy', year: 1994, description: 'Um homem encontra uma máscara que lhe concede poderes.', rating: 6.9, duration: '1h 41m', imageUrl: '/movies/maskara.jpg'})-[:HAS_GENRE]->(g);
+
+// =========================================================
+// 4. CRIAÇÃO DOS ATORES (ELENCO)
+// =========================================================
+
+// Keanu Reeves (John Wick, Matrix)
+MATCH (m1:Title {id: 'T21'}) // John Wick
+MATCH (m2:Title {id: 'T20'}) // Matrix
+MERGE (p:Person {id: 'P01', name: 'Keanu Reeves'})
+MERGE (p)-[:ACTED_IN]->(m1)
+MERGE (p)-[:ACTED_IN]->(m2);
+
+// Tom Hanks (Toy Story - Voice)
+MATCH (m:Title {id: 'T01'})
+MERGE (p:Person {id: 'P02', name: 'Tom Hanks'})
+MERGE (p)-[:ACTED_IN]->(m);
+
+// Mike Myers (Shrek)
+MATCH (m:Title {id: 'T04'})
+MERGE (p:Person {id: 'P03', name: 'Mike Myers'})
+MERGE (p)-[:ACTED_IN]->(m);
+
+// Jack Black (Kung Fu Panda)
+MATCH (m:Title {id: 'T08'})
+MERGE (p:Person {id: 'P04', name: 'Jack Black'})
+MERGE (p)-[:ACTED_IN]->(m);
+
+// Christian Bale (Dark Knight)
+MATCH (m:Title {id: 'T18'})
+MERGE (p:Person {id: 'P05', name: 'Christian Bale'})
+MERGE (p)-[:ACTED_IN]->(m);
+
+// Heath Ledger (Dark Knight)
+MATCH (m:Title {id: 'T18'}) 
+MERGE (p:Person {id: 'P06', name: 'Heath Ledger'})
+MERGE (p)-[:ACTED_IN]->(m);
+
+// Tom Cruise (Mission Impossible)
+MATCH (m:Title {id: 'T19'}) 
+MERGE (p:Person {id: 'P07', name: 'Tom Cruise'})
+MERGE (p)-[:ACTED_IN]->(m);
+
+// Timothée Chalamet (Dune)
+MATCH (m:Title {id: 'T24'})
+MERGE (p:Person {id: 'P08', name: 'Timothée Chalamet'})
+MERGE (p)-[:ACTED_IN]->(m);
+
+// Jonah Hill (Superbad, Anjos da Lei)
+MATCH (m1:Title {id: 'T25'})
+MATCH (m2:Title {id: 'T27'})
+MERGE (p:Person {id: 'P09', name: 'Jonah Hill'})
+MERGE (p)-[:ACTED_IN]->(m1)
+MERGE (p)-[:ACTED_IN]->(m2);
+
+// Jim Carrey (Sim Senhor, O Mascara)
+MATCH (m1:Title {id: 'T28'})
+MATCH (m2:Title {id: 'T32'})
+MERGE (p:Person {id: 'P10', name: 'Jim Carrey'})
+MERGE (p)-[:ACTED_IN]->(m1)
+MERGE (p)-[:ACTED_IN]->(m2);
